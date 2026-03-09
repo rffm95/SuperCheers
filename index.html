@@ -8,8 +8,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: system-ui, sans-serif; 
-      background: linear-gradient(135deg, #0288d1 0%, #00b0ff 50%, #4fc3f7 100%);
-      color: #fff; 
+      background: linear-gradient(135deg, #1a1a1a 0%, #333 50%, #555 100%);
+      color: #ffd700; 
       min-height: 100vh; 
       overflow: hidden;
       display: flex;
@@ -19,10 +19,9 @@
       touch-action: manipulation;
     }
     canvas { 
-      border: 4px solid #fff; 
+      border: 4px solid #ffd700; 
       border-radius: 12px; 
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      background: #87ceeb; 
+      box-shadow: 0 20px 40px rgba(255,215,0,0.3);
       max-width: 100%; 
       max-height: 80vh;
     }
@@ -33,7 +32,24 @@
       z-index: 10; 
       font-size: 24px; 
       font-weight: bold; 
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 2px 2px 4px #000;
+      color: #ffd700;
+    }
+    #controls { 
+      position: absolute; 
+      bottom: 20px; 
+      left: 20px; 
+      right: 20px; 
+      z-index: 10; 
+      background: rgba(0,0,0,0.7); 
+      border: 2px solid #ffd700; 
+      border-radius: 12px; 
+      padding: 15px; 
+      color: #ffd700; 
+      font-size: 18px; 
+      font-weight: bold; 
+      text-align: center;
+      text-shadow: 1px 1px 2px #000;
     }
     #nameInput { 
       position: absolute; 
@@ -42,57 +58,61 @@
       transform: translateX(-50%); 
       padding: 15px 30px; 
       font-size: 20px; 
-      border: none; 
+      border: 2px solid #ffd700; 
       border-radius: 25px; 
-      background: #fff; 
-      color: #0288d1; 
+      background: #333; 
+      color: #ffd700; 
       font-weight: bold; 
       text-align: center;
       display: none;
     }
-    #startBtn { 
+    .btn { 
       padding: 20px 50px; 
-      font-size: 28px; 
-      background: #00c853; 
-      color: white; 
+      font-size: 24px; 
+      background: linear-gradient(45deg, #ffd700, #ffed4a); 
+      color: #1a1a1a; 
       border: none; 
       border-radius: 50px; 
       cursor: pointer; 
       font-weight: bold; 
-      box-shadow: 0 10px 20px rgba(0,200,83,0.4);
-      transition: transform 0.2s;
+      box-shadow: 0 10px 20px rgba(255,215,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 10px;
+      display: none;
     }
-    #startBtn:active { transform: scale(0.95); }
+    .btn:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(255,215,0,0.2); }
     #leaderboard { 
       position: absolute; 
       top: 20px; 
       right: 20px; 
-      background: rgba(255,255,255,0.9); 
+      background: rgba(26,26,26,0.95); 
+      border: 2px solid #ffd700;
       padding: 20px; 
       border-radius: 12px; 
-      color: #0288d1; 
+      color: #ffd700; 
       font-size: 16px; 
-      max-width: 200px;
-      display: none;
+      max-width: 220px;
     }
     h1 { 
       font-size: 36px; 
       margin-bottom: 20px; 
-      text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+      text-shadow: 3px 3px 6px #000;
     }
-    .heineken { color: #00b712; font-size: 1.2em; }
+    .heineken { color: #00b712; font-size: 1.2em; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>🧑‍🍳 CHEERS EDITION</h1>
-  <p class="heineken">Heineken Super Mario Run!</p>
+  <h1>🥂 CHEERS EDITION</h1>
+  <p class="heineken">Heineken Caneca Run!</p>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
   <div id="ui">
     <div>Score: <span id="score">0</span></div>
-    <div>Player: <span id="playerName">Anónimo</span></div>
+    <div>Nome: <span id="playerName">Anónimo</span></div>
   </div>
-  <input type="text" id="nameInput" maxlength="12" placeholder="Nome Jogador">
-  <button id="startBtn">JOGAR!</button>
+  <div id="controls"></div>
+  <input type="text" id="nameInput" maxlength="12" placeholder="O teu nome">
+  <button id="startBtn" class="btn">JOGAR!</button>
+  <button id="restartBtn" class="btn">JOGAR OUTRA VEZ</button>
   <div id="leaderboard"></div>
 
   <script>
@@ -102,21 +122,31 @@
     const playerNameEl = document.getElementById('playerName');
     const nameInput = document.getElementById('nameInput');
     const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
     const leaderboardEl = document.getElementById('leaderboard');
+    const controlsEl = document.getElementById('controls');
+
+    // Detectar PC vs Mobile
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Controls legend
+    controlsEl.innerHTML = isMobile ? 
+      '👆 Toque: Salto<br>← Swipe Esquerda<br>→ Swipe Direita' : 
+      '← → Setas: Mover<br>SPACE: Saltar';
 
     // Game state
-    let gameState = 'menu'; // menu, playing, gameOver, nameEntry
+    let gameState = 'menu';
     let score = 0;
     let playerName = 'Anónimo';
     let keys = {};
     let highScores = JSON.parse(localStorage.getItem('cheersHeinekenHighScores')) || [];
-    let gameSpeed = 3;
-    let scrollX = 0;
+    let cameraX = 0;
+    let worldX = 0;
 
     // Player
     const player = {
       x: 100,
-      y: 300,
+      y: 250,
       width: 40,
       height: 50,
       vx: 0,
@@ -125,218 +155,262 @@
       frame: 0
     };
 
-    // Platforms (simple level)
+    const groundY = 340;
     const platforms = [
-      {x: 0, y: 350, width: 2000, height: 50},
-      {x: 300, y: 280, width: 150, height: 20},
-      {x: 550, y: 220, width: 100, height: 20},
-      {x: 800, y: 300, width: 200, height: 20},
-      {x: 1200, y: 250, width: 150, height: 20},
-      {x: 1600, y: 180, width: 200, height: 20}
+      {x: -2000, y: groundY, width: 4000, height: 60},
+      {x: 200, y: 270, width: 150, height: 20},
+      {x: 450, y: 210, width: 120, height: 20},
+      {x: 700, y: 290, width: 180, height: 20},
+      {x: 950, y: 240, width: 160, height: 20},
+      {x: 1200, y: 170, width: 200, height: 20},
+      {x: 1500, y: 270, width: 140, height: 20}
     ];
 
-    // Heineken bottles (coins)
-    let bottles = [];
-    function addBottle() {
-      bottles.push({
-        x: scrollX + canvas.width + Math.random() * 300,
-        y: 200 + Math.random() * 100,
-        width: 25,
-        height: 30,
-        collected: false
-      });
-    }
-
-    // Enemies (simple goombas)
+    let canecas = [];
     let enemies = [];
-    function addEnemy() {
-      enemies.push({
-        x: scrollX + canvas.width + Math.random() * 500,
-        y: 320,
-        width: 30,
-        height: 30,
-        vx: -1 - gameSpeed * 0.5
+
+    function spawnCaneca() {
+      canecas.push({
+        x: worldX + canvas.width + Math.random() * 400 + 200,
+        y: groundY - 60 - Math.random() * 80,
+        width: 28,
+        height: 35,
+        collected: false,
+        bob: 0
       });
     }
 
-    // Input
-    window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
-    window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+    function spawnEnemy() {
+      enemies.push({
+        x: worldX + canvas.width + Math.random() * 600,
+        y: groundY - 30,
+        width: 32,
+        height: 32,
+        vx: -2
+      });
+    }
 
-    // Touch controls
-    let touchStartX = 0;
-    canvas.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-    });
-    canvas.addEventListener('touchend', (e) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      if (touchEndX - touchStartX > 50) {
-        keys['right'] = true;
-      } else if (touchStartX - touchEndX > 50) {
-        keys['left'] = true;
-      } else {
-        player.vy = -12;
+    // Input PC/Mobile
+    window.addEventListener('keydown', (e) => { 
+      keys[e.code] = true;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (player.onGround) player.vy = -14;
       }
-      setTimeout(() => { keys['left'] = keys['right'] = false; }, 100);
+    });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    // Touch mobile
+    let touchStartX = 0, touchStartY = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    });
+    canvas.addEventListener('touchmove', (e) => e.preventDefault());
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 40) keys['ArrowRight'] = true;
+        else if (dx < -40) keys['ArrowLeft'] = true;
+      } else if (dy > 30 && player.onGround) {
+        player.vy = -14;
+      }
+      setTimeout(() => { 
+        keys['ArrowLeft'] = keys['ArrowRight'] = false; 
+      }, 200);
     });
 
     // Update player
-    function updatePlayer() {
-      // Horizontal
-      if (keys['right'] || keys['d']) {
-        player.vx = Math.min(player.vx + 0.5, 5);
-      } else if (keys['left'] || keys['a']) {
-        player.vx = Math.max(player.vx - 0.5, -5);
+    function updatePlayer(dt) {
+      // Horizontal - setas confirmadas
+      if (keys['ArrowRight'] || keys['KeyD']) {
+        player.vx = Math.min(player.vx + 15 * dt, 4);
+      } else if (keys['ArrowLeft'] || keys['KeyA']) {
+        player.vx = Math.max(player.vx - 15 * dt, -4);
       } else {
-        player.vx *= 0.85;
+        player.vx *= 0.88;
       }
 
-      // Jump
-      if ((keys[' '] || keys['w'] || keys['up']) && player.onGround) {
-        player.vy = -12;
-        player.onGround = false;
-      }
-
-      // Gravity
-      player.vy += 0.8;
+      player.vy += 20 * dt;
       player.y += player.vy;
       player.x += player.vx;
 
-      // Boundaries
       if (player.x < 50) player.x = 50;
-      if (player.y > canvas.height) {
-        gameOver();
-        return;
-      }
+      if (player.x > worldX + canvas.width - 100) player.x = worldX + canvas.width - 100;
 
-      // Platform collision
+      // Collision
       player.onGround = false;
+      if (player.y + player.height > groundY) {
+        player.y = groundY - player.height;
+        player.vy = 0;
+        player.onGround = true;
+      }
       for (let plat of platforms) {
         if (player.x < plat.x + plat.width &&
             player.x + player.width > plat.x &&
-            player.y + player.height <= plat.y + plat.height &&
-            player.y + player.height + player.vy >= plat.y) {
-          if (player.vy > 0) {
-            player.y = plat.y - player.height;
-            player.vy = 0;
-            player.onGround = true;
-          }
+            player.y + player.height < plat.y + plat.height &&
+            player.y + player.height + player.vy >= plat.y &&
+            player.vy > 0) {
+          player.y = plat.y - player.height;
+          player.vy = 0;
+          player.onGround = true;
         }
       }
 
-      // Animation frame
-      if (player.vx > 0.1 || player.vx < -0.1) player.frame += 0.2;
+      if (player.y > canvas.height + 50) gameOver();
+
+      player.frame += Math.abs(player.vx) * 0.1;
     }
 
     // Update world
-    function updateWorld() {
-      scrollX -= gameSpeed;
-      score += 1;
-      gameSpeed += 0.001;
+    function updateWorld(dt) {
+      worldX += 1.8;
+      score += 12;
 
-      // Remove old platforms? Endless repeat simple
-      platforms[0].x += canvas.width * 0.0005; // slow move
+      const targetCamera = player.x - canvas.width / 3;
+      cameraX += (targetCamera - cameraX) * 0.12;
 
-      // Bottles
-      for (let i = bottles.length - 1; i >= 0; i--) {
-        let b = bottles[i];
-        b.x -= gameSpeed;
-        if (Math.abs(b.x - player.x) < 30 && Math.abs(b.y - player.y) < 40 && !b.collected) {
-          b.collected = true;
-          score += 100;
+      // Canecas
+      for (let i = canecas.length - 1; i >= 0; i--) {
+        let c = canecas[i];
+        c.bob += dt * 3;
+        c.y += Math.sin(c.bob) * 0.8;
+        if (Math.hypot(c.x - player.x, c.y - player.y) < 40 && !c.collected) {
+          c.collected = true;
+          score += 500;
         }
-        if (b.x < scrollX - 100) bottles.splice(i, 1);
+        if (c.x < cameraX - 150) canecas.splice(i, 1);
       }
-      if (Math.random() < 0.02) addBottle();
+      if (Math.random() < 0.02) spawnCaneca();
 
       // Enemies
       for (let i = enemies.length - 1; i >= 0; i--) {
         let e = enemies[i];
-        e.x += e.vx;
-        if (Math.abs(e.x - player.x) < 40 && Math.abs(e.y - player.y) < 50) {
+        e.x -= 2.2;
+        if (Math.hypot(e.x - player.x, e.y - player.y) < 45) {
           gameOver();
           return;
         }
-        if (e.x < scrollX - 100) enemies.splice(i, 1);
+        if (e.x < cameraX - 150) enemies.splice(i, 1);
       }
-      if (Math.random() < 0.01) addEnemy();
+      if (Math.random() < 0.01) spawnEnemy();
     }
 
-    // Render
+    // Render VISÍVEL
     function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Background Heineken green hills
-      ctx.fillStyle = '#90EE90';
+      // Background visível
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGrad.addColorStop(0, '#444');
+      skyGrad.addColorStop(0.5, '#777');
+      skyGrad.addColorStop(1, '#222');
+      ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#228B22';
-      for (let i = 0; i < canvas.width; i += 100) {
-        ctx.beginPath();
-        ctx.arc(i + scrollX * 0.1, 350, 50, 0, Math.PI);
-        ctx.fill();
+
+      // Ground VISÍVEL sempre
+      ctx.fillStyle = '#8B4513'; // castanho visível
+      ctx.fillRect(-100 - cameraX, groundY, 1000, 60);
+      ctx.fillStyle = '#DAA520'; // dourado
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.fillRect(x, groundY + 5, 35, 10);
       }
 
-      // Platforms
-      ctx.fillStyle = '#8B4513';
+      // Platforms visíveis
+      ctx.fillStyle = '#666';
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 4;
       for (let plat of platforms) {
-        ctx.fillRect(plat.x - scrollX, plat.y, plat.width, plat.height);
-      }
-
-      // Bottles (Heineken green)
-      ctx.fillStyle = '#00ff00';
-      for (let b of bottles) {
-        if (!b.collected) {
-          ctx.fillRect(b.x - scrollX, b.y, b.width, b.height);
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(b.x + 5 - scrollX, b.y + 5, 15, 20); // label
-          ctx.fillStyle = '#00ff00';
+        const screenX = plat.x - cameraX;
+        if (screenX > -200 && screenX < canvas.width + 200) {
+          ctx.fillRect(screenX, plat.y, plat.width, plat.height);
+          ctx.strokeRect(screenX, plat.y, plat.width, plat.height);
         }
       }
 
-      // Enemies (brown goombas)
-      ctx.fillStyle = '#654321';
-      for (let e of enemies) {
-        ctx.fillRect(e.x - scrollX, e.y, e.width, e.height);
+      // Canecas douradas
+      ctx.fillStyle = '#ffd700';
+      for (let c of canecas) {
+        if (!c.collected) {
+          const screenX = c.x - cameraX;
+          if (screenX > -50 && screenX < canvas.width + 50) {
+            ctx.save();
+            ctx.translate(screenX + 14, c.y + 17);
+            ctx.fillRect(-12, -17, 24, 34);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(-10, -25, 20, 10); // espuma
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🍺', 0, 8);
+            ctx.restore();
+          }
+        }
       }
 
-      // Player (Mario-like with Heineken hat)
-      ctx.fillStyle = player.onGround ? '#ff0000' : '#ff4444';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-      ctx.fillStyle = '#00b712'; // Heineken green pants
-      ctx.fillRect(player.x + 5, player.y + 30, 30, 20);
-      ctx.fillStyle = '#fff'; // eyes
-      ctx.fillRect(player.x + 10, player.y + 10, 4, 4);
-      ctx.fillRect(player.x + 25, player.y + 10, 4, 4);
+      // Enemies
+      ctx.fillStyle = '#8B4513';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 8;
+      for (let e of enemies) {
+        const screenX = e.x - cameraX;
+        if (screenX > -50 && screenX < canvas.width + 50) {
+          ctx.fillRect(screenX, e.y, e.width, e.height);
+        }
+      }
+      ctx.shadowBlur = 0;
 
-      // Cheers logo
+      // Player dourado BRILHANTE
+      const playerScreenX = player.x - cameraX;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(playerScreenX, player.y, player.width, player.height);
+      ctx.shadowBlur = 0;
+      // Olhos
       ctx.fillStyle = '#fff';
-      ctx.font = '20px Arial';
-      ctx.fillText('CHEERS BAR', canvas.width - 150, 30);
+      ctx.fillRect(playerScreenX + 10, player.y + 10, 6, 6);
+      ctx.fillRect(playerScreenX + 24, player.y + 10, 6, 6);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(playerScreenX + 12, player.y + 12, 2, 2);
+      ctx.fillRect(playerScreenX + 26, player.y + 12, 2, 2);
+
+      // Logo visível
+      ctx.fillStyle = '#ffd700';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText('CHEERS BAR', canvas.width - 20, canvas.height - 60);
+      ctx.font = 'bold 22px Arial';
       ctx.fillStyle = '#00b712';
-      ctx.fillText('HEINEKEN', canvas.width - 150, 55);
+      ctx.fillText('HEINEKEN', canvas.width - 20, canvas.height - 30);
+      ctx.textAlign = 'left';
     }
 
     // Game loop
-    function gameLoop() {
+    let lastTime = 0;
+    function gameLoop(time) {
+      const dt = Math.min((time - lastTime) / 1000, 0.016);
+      lastTime = time;
+
       if (gameState === 'playing') {
-        updatePlayer();
-        updateWorld();
+        updatePlayer(dt);
+        updateWorld(dt);
         scoreEl.textContent = Math.floor(score);
       }
       render();
       requestAnimationFrame(gameLoop);
     }
 
-    // Game over
     function gameOver() {
       gameState = 'nameEntry';
       nameInput.style.display = 'block';
       nameInput.focus();
+      restartBtn.style.display = 'block';
     }
 
-    // Save score
     function saveScore() {
-      playerName = nameInput.value || 'Anónimo';
+      playerName = nameInput.value.trim() || 'Anónimo';
       playerNameEl.textContent = playerName;
       const entry = { name: playerName, score: Math.floor(score) };
       highScores.push(entry);
@@ -348,42 +422,41 @@
       gameState = 'gameOver';
     }
 
-    // Show leaderboard
     function showLeaderboard() {
-      leaderboardEl.innerHTML = '<strong>Top 10 Cheers!</strong><br>';
-      highScores.forEach((hs, i) => {
-        leaderboardEl.innerHTML += `${i+1}. ${hs.name}: ${Math.floor(hs.score)}<br>`;
+      leaderboardEl.innerHTML = '<strong>🏆 TOP 10</strong><br>';
+      highScores.slice(0,10).forEach((hs, i) => {
+        leaderboardEl.innerHTML += `${i+1}. ${hs.name.padEnd(8)} ${hs.score.toLocaleString()}<br>`;
       });
-      leaderboardEl.style.display = 'block';
     }
 
-    // Events
-    startBtn.onclick = () => {
-      gameState = 'playing';
+    function resetGame() {
       score = 0;
-      gameSpeed = 3;
-      scrollX = 0;
+      worldX = 0;
+      cameraX = 0;
       player.x = 100;
-      player.y = 300;
+      player.y = 250;
       player.vx = 0;
       player.vy = 0;
       player.onGround = false;
-      bottles = [];
+      canecas = [];
       enemies = [];
+      gameState = 'playing';
+      for (let i = 0; i < 6; i++) spawnCaneca();
+      restartBtn.style.display = 'none';
+    }
+
+    startBtn.onclick = () => {
+      resetGame();
       startBtn.style.display = 'none';
-      leaderboardEl.style.display = 'none';
-      showLeaderboard();
     };
 
-    nameInput.onkeypress = (e) => {
-      if (e.key === 'Enter') saveScore();
-    };
+    restartBtn.onclick = resetGame;
 
+    nameInput.onkeypress = (e) => { if (e.key === 'Enter') saveScore(); };
     nameInput.onblur = saveScore;
 
-    // Init
     showLeaderboard();
-    gameLoop();
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
