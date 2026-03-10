@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>CHEERS O BAR, JOGO ORIGINAL</title>
+  <title>Super Cheers</title>
   <style>
     :root{
       --gold:#f7c948;
       --gold2:#ffe08a;
       --panel:rgba(12,14,18,.84);
+      --panel2:rgba(6,8,13,.65);
       --cyan:#65fff2;
       --pink:#ff4fd8;
       --safe-top: env(safe-area-inset-top, 0px);
@@ -144,9 +145,9 @@
       pointer-events:auto;
       color:#fff;
       border-radius:12px;
-      width:42px;
-      height:42px;
-      font-size:20px;
+      width:40px;
+      height:40px;
+      font-size:18px;
       font-weight:900;
       display:flex;
       align-items:center;
@@ -159,51 +160,90 @@
       left:calc(10px + var(--safe-left));
       bottom:calc(10px + var(--safe-bottom));
       z-index:6;
-      border-radius:14px;
-      padding:8px 12px;
-      font-size:12px;
-      line-height:1.3;
-      color:#e7ebf2;
+      border-radius:12px;
+      padding:7px 10px;
+      font-size:11px;
+      line-height:1.25;
+      color:#dfe6f0;
       pointer-events:none;
+      background:rgba(10,12,16,.50);
+      border:1px solid rgba(255,255,255,.06);
     }
+
+    /* MOBILE CONTROLS – JOYSTICK + JUMP BALL */
 
     #mobileControls{
       position:absolute;
-      left:calc(12px + var(--safe-left));
-      right:calc(12px + var(--safe-right));
-      bottom:calc(10px + var(--safe-bottom));
+      left:0;
+      right:0;
+      bottom:0;
       z-index:7;
       display:none;
       justify-content:space-between;
       align-items:flex-end;
+      padding:calc(8px + var(--safe-bottom)) calc(10px + var(--safe-right));
+      padding-left:calc(10px + var(--safe-left));
       pointer-events:none;
     }
 
-    .ctrlGroup{
-      display:flex;
-      gap:14px;
+    .joyWrapper{
+      position:relative;
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(0,0,0,.55) 0%, rgba(0,0,0,.15) 55%, rgba(0,0,0,0) 70%);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 10px 30px rgba(0,0,0,.5);
       pointer-events:auto;
-    }
-
-    .ctrlBtn{
-      width:88px;
-      height:88px;
-      border-radius:24px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(11,13,17,.88);
-      color:var(--gold2);
-      font-size:30px;
-      font-weight:900;
-      box-shadow:0 12px 26px rgba(0,0,0,.34);
       touch-action:none;
     }
 
-    .ctrlBtn:active{ transform:scale(.97); }
+    .joyBase{
+      position:absolute;
+      inset:18px;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.15), rgba(10,12,18,.9));
+      border:1px solid rgba(255,255,255,.18);
+    }
 
-    .jumpBtn{
-      width:126px;
+    .joyKnob{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:52px;
+      height:52px;
+      margin-left:-26px;
+      margin-top:-26px;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.22), rgba(11,13,19,.98));
+      border:1px solid rgba(255,255,255,.35);
+      box-shadow:0 10px 24px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.8);
+      transition:transform .05s linear;
+    }
+
+    .jumpBall{
+      pointer-events:auto;
+      touch-action:none;
+      width:88px;
+      height:88px;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.18), rgba(12,14,20,.96));
+      border:1px solid rgba(255,255,255,.22);
+      box-shadow:
+        0 12px 30px rgba(0,0,0,.55),
+        0 0 0 1px rgba(0,0,0,.75) inset;
+      color:var(--gold2);
+      font-weight:900;
       font-size:18px;
       letter-spacing:.08em;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .jumpBall:active{
+      transform:translateY(2px) scale(.96);
+      background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.22), rgba(12,14,20,1));
     }
 
     .overlay{
@@ -299,6 +339,11 @@
       box-shadow:0 10px 20px rgba(101,255,242,.18);
     }
 
+    .tertiary{
+      color:#fff;
+      background:linear-gradient(180deg, #2b3240, #181c25);
+    }
+
     .stats{
       margin-top:16px;
       display:grid;
@@ -338,7 +383,6 @@
         height:100dvh;
         border-radius:0;
       }
-
       #mobileControls{
         display:flex;
       }
@@ -346,72 +390,52 @@
 
     @media (pointer: coarse) and (orientation: portrait){
       #gameArea{
-        top:54px;
-        bottom:164px;
+        top:52px;
+        bottom:130px;
       }
-
       .help{
         left:calc(8px + var(--safe-left));
         right:calc(8px + var(--safe-right));
-        bottom:calc(102px + var(--safe-bottom));
+        bottom:calc(82px + var(--safe-bottom));
         max-width:none;
-        font-size:12px;
-        padding:8px 10px;
+        font-size:11px;
       }
-
-      #mobileControls{
-        bottom:calc(12px + var(--safe-bottom));
-      }
-
-      .ctrlGroup{
-        gap:16px;
-      }
-
-      .ctrlBtn{
-        width:94px;
-        height:94px;
-        font-size:32px;
-      }
-
-      .jumpBtn{
-        width:132px;
-        font-size:18px;
-      }
-
       .stats{
         grid-template-columns:1fr 1fr;
+      }
+      .joyWrapper{
+        width:110px;
+        height:110px;
+      }
+      .jumpBall{
+        width:80px;
+        height:80px;
       }
     }
 
     @media (pointer: coarse) and (orientation: landscape){
       #gameArea{
-        top:50px;
-        bottom:118px;
+        top:46px;
+        bottom:78px;
       }
-
       .help{
         left:calc(10px + var(--safe-left));
-        bottom:calc(10px + var(--safe-bottom));
-        max-width:300px;
-        font-size:12px;
-        padding:8px 10px;
+        bottom:calc(8px + var(--safe-bottom));
+        max-width:260px;
+        font-size:10px;
+        padding:6px 9px;
       }
-
       #mobileControls{
-        left:calc(14px + var(--safe-left));
-        right:calc(14px + var(--safe-right));
-        bottom:calc(12px + var(--safe-bottom));
+        padding-bottom:calc(8px + var(--safe-bottom));
       }
-
-      .ctrlBtn{
-        width:96px;
-        height:96px;
-        font-size:32px;
+      .joyWrapper{
+        width:100px;
+        height:100px;
       }
-
-      .jumpBtn{
-        width:140px;
-        font-size:18px;
+      .jumpBall{
+        width:72px;
+        height:72px;
+        font-size:14px;
       }
     }
 
@@ -423,6 +447,7 @@
       .tag{ font-size:12px; padding:10px 12px; }
       #wrap{ width:min(97vw,1280px); height:min(97vh,720px); border-radius:24px; }
       #gameArea{ inset:0; }
+      .help{ font-size:12px; padding:8px 12px; }
     }
   </style>
 </head>
@@ -442,8 +467,9 @@
         <div class="chip"><div class="k">Vidas</div><div class="v" id="livesEl">3</div></div>
       </div>
       <div class="hudRight">
-        <div class="tag">CHEERS O BAR</div>
+        <div class="tag">SUPER CHEERS</div>
         <div class="tag">JOGO ORIGINAL</div>
+        <button class="hudMini" id="musicBtn" title="Música">♪</button>
         <button class="hudMini" id="fsBtn" title="Fullscreen">⛶</button>
       </div>
     </div>
@@ -451,25 +477,24 @@
     <div class="help" id="helpText"></div>
 
     <div id="mobileControls">
-      <div class="ctrlGroup">
-        <button class="ctrlBtn" id="leftBtn">◀</button>
-        <button class="ctrlBtn" id="rightBtn">▶</button>
+      <div class="joyWrapper" id="joyArea">
+        <div class="joyBase"></div>
+        <div class="joyKnob" id="joyKnob"></div>
       </div>
-      <div class="ctrlGroup">
-        <button class="ctrlBtn jumpBtn" id="jumpBtn">JUMP</button>
-      </div>
+      <button class="jumpBall" id="jumpBtn">JUMP</button>
     </div>
 
     <div class="overlay" id="startOverlay">
       <div class="card">
-        <div class="badge">CHEERS O BAR, JOGO ORIGINAL</div>
+        <div class="badge">SUPER CHEERS</div>
         <h1 class="arcade">SAGRES ARCADE RUN</h1>
-        <p>Versão final otimizada para mobile, com botões grandes e jogo mais ampliado no ecrã.</p>
-        <p>Apanha canecas e shots, evita barris, usa checkpoints e chega ao fim dos 10 níveis.</p>
-        <p class="tiny">No telemóvel o jogo faz zoom para ficar bem mais legível.</p>
+        <p>Plataformer rápido, otimizado para mobile com joystick virtual e salto confortável.</p>
+        <p>Apanha canecas e shots, evita barris, usa checkpoints e tenta fazer o melhor score.</p>
+        <p class="tiny">Telemóvel na vertical ou horizontal, tudo pensado para ser competitivo e divertido.</p>
         <div class="buttons">
           <button class="primary" id="playBtn">JOGAR</button>
-          <button class="secondary" id="soundBtn">SOM: ON</button>
+          <button class="secondary" id="soundBtn">SOM FX: ON</button>
+          <button class="tertiary" id="musicToggleBtn">MÚSICA: ON</button>
         </div>
       </div>
     </div>
@@ -478,7 +503,7 @@
       <div class="card">
         <div class="badge">LEVEL CLEAR</div>
         <h2 class="arcade" id="betweenTitle">Nível 1 concluído</h2>
-        <p id="betweenText">Prepara-te para o próximo.</p>
+        <p id="betweenText">Prepara-te para o próximo, tenta bater o teu próprio tempo.</p>
         <div class="buttons">
           <button class="primary" id="nextBtn">PRÓXIMO NÍVEL</button>
         </div>
@@ -524,6 +549,8 @@
   const livesEl = document.getElementById('livesEl');
   const helpText = document.getElementById('helpText');
   const mobileControls = document.getElementById('mobileControls');
+  const joyArea = document.getElementById('joyArea');
+  const joyKnob = document.getElementById('joyKnob');
 
   const startOverlay = document.getElementById('startOverlay');
   const betweenOverlay = document.getElementById('betweenOverlay');
@@ -535,7 +562,9 @@
   const menuBtn = document.getElementById('menuBtn');
   const shareBtn = document.getElementById('shareBtn');
   const soundBtn = document.getElementById('soundBtn');
+  const musicToggleBtn = document.getElementById('musicToggleBtn');
   const fsBtn = document.getElementById('fsBtn');
+  const musicBtnHud = document.getElementById('musicBtn');
 
   const betweenTitle = document.getElementById('betweenTitle');
   const betweenText = document.getElementById('betweenText');
@@ -549,8 +578,6 @@
   const finalShots = document.getElementById('finalShots');
   const finalTime = document.getElementById('finalTime');
 
-  const leftBtn = document.getElementById('leftBtn');
-  const rightBtn = document.getElementById('rightBtn');
   const jumpBtn = document.getElementById('jumpBtn');
 
   const GRAVITY = 0.72;
@@ -586,8 +613,9 @@
 
   let audioCtx = null;
   let soundEnabled = true;
-  let musicTimer = null;
-  let musicStep = 0;
+  let musicEnabled = true;
+  let musicNode = null;
+  let musicGain = null;
 
   let pixelW = 1280;
   let pixelH = 720;
@@ -628,8 +656,8 @@
 
   function playSfx(name){
     if(!soundEnabled) return;
-    if(name === 'jump'){ tone(420, .07, 'square', .03); tone(620, .04, 'square', .02); }
-    if(name === 'mug'){ tone(740, .05, 'triangle', .04); tone(920, .06, 'triangle', .03); }
+    if(name === 'jump'){ tone(420, .07, 'square', .03); tone(640, .04, 'square', .02); }
+    if(name === 'mug'){ tone(740, .05, 'triangle', .04); tone(940, .06, 'triangle', .03); }
     if(name === 'shot'){ tone(560, .05, 'sawtooth', .04); tone(860, .07, 'triangle', .03); }
     if(name === 'stomp'){ tone(220, .06, 'square', .04); }
     if(name === 'hit'){ tone(180, .12, 'sawtooth', .05); }
@@ -638,32 +666,97 @@
     if(name === 'win'){ tone(660,.08,'triangle',.04); setTimeout(()=>tone(880,.08,'triangle',.04),80); setTimeout(()=>tone(1320,.18,'triangle',.04),160); }
   }
 
-  function startMusic(){
-    if(musicTimer || !soundEnabled || !audioCtx) return;
-    const seq = [262, 392, 330, 494, 392, 523, 392, 330];
-    musicTimer = setInterval(() => {
-      if(gameState !== 'playing') return;
-      tone(seq[musicStep % seq.length], 0.06, 'square', 0.018);
-      if(musicStep % 4 === 0) tone(seq[(musicStep + 2) % seq.length] / 2, 0.1, 'triangle', 0.012);
-      musicStep++;
-    }, 180);
+  function startAfroHouseLoop(){
+    if(!audioCtx || !musicEnabled) return;
+    stopAfroHouseLoop();
+
+    const tempo = 112;
+    const beat = 60/tempo;
+    const length = beat*8;
+
+    const ctxTime = audioCtx.currentTime + 0.05;
+    const gMain = audioCtx.createGain();
+    gMain.gain.value = 0.18;
+    gMain.connect(audioCtx.destination);
+    musicGain = gMain;
+
+    const bass = audioCtx.createOscillator();
+    bass.type = 'sine';
+    bass.frequency.setValueAtTime(55, ctxTime);
+    const bassGain = audioCtx.createGain();
+    bassGain.gain.setValueAtTime(0, ctxTime);
+
+    for(let i=0;i<8;i++){
+      const t = ctxTime + i*beat;
+      const vol = (i%2===0)?0.7:0.45;
+      bassGain.gain.linearRampToValueAtTime(vol, t);
+      bassGain.gain.linearRampToValueAtTime(0.001, t+beat*0.6);
+    }
+    bass.connect(bassGain).connect(gMain);
+    bass.start(ctxTime);
+    bass.stop(ctxTime + length+0.1);
+
+    const hat = audioCtx.createOscillator();
+    hat.type = 'square';
+    const hatGain = audioCtx.createGain();
+    hatGain.gain.value = 0;
+    hat.connect(hatGain).connect(gMain);
+
+    for(let i=0;i<16;i++){
+      const t = ctxTime + i*(beat/2);
+      hat.frequency.setValueAtTime(4000, t);
+      hatGain.gain.setValueAtTime(0.18, t);
+      hatGain.gain.exponentialRampToValueAtTime(0.001, t+beat*0.3);
+    }
+    hat.start(ctxTime);
+    hat.stop(ctxTime + length+0.1);
+
+    const chord = audioCtx.createOscillator();
+    chord.type = 'triangle';
+    const chordGain = audioCtx.createGain();
+    chordGain.gain.setValueAtTime(0, ctxTime);
+    chord.frequency.setValueAtTime(440, ctxTime);
+    chord.frequency.setValueAtTime(466, ctxTime + beat*2);
+    chord.frequency.setValueAtTime(392, ctxTime + beat*4);
+
+    chordGain.gain.linearRampToValueAtTime(0.06, ctxTime+beat*0.5);
+    chordGain.gain.linearRampToValueAtTime(0.02, ctxTime+beat*3);
+    chordGain.gain.linearRampToValueAtTime(0.07, ctxTime+beat*4.5);
+    chordGain.gain.linearRampToValueAtTime(0.01, ctxTime+beat*7.5);
+
+    chord.connect(chordGain).connect(gMain);
+    chord.start(ctxTime);
+    chord.stop(ctxTime + length+0.1);
+
+    musicNode = setTimeout(startAfroHouseLoop, length*1000);
   }
 
-  function stopMusic(){
-    if(musicTimer){
-      clearInterval(musicTimer);
-      musicTimer = null;
+  function stopAfroHouseLoop(){
+    if(musicGain){
+      musicGain.disconnect();
+      musicGain = null;
+    }
+    if(musicNode){
+      clearTimeout(musicNode);
+      musicNode = null;
     }
   }
 
-  function toggleSound(){
+  function toggleFx(){
     soundEnabled = !soundEnabled;
-    soundBtn.textContent = `SOM: ${soundEnabled ? 'ON' : 'OFF'}`;
-    if(soundEnabled){
-      initAudio();
-      startMusic();
+    soundBtn.textContent = `SOM FX: ${soundEnabled ? 'ON' : 'OFF'}`;
+  }
+
+  function toggleMusic(){
+    musicEnabled = !musicEnabled;
+    musicToggleBtn.textContent = `MÚSICA: ${musicEnabled ? 'ON' : 'OFF'}`;
+    musicBtnHud.textContent = musicEnabled ? '♪' : '×';
+    if(!audioCtx) initAudio();
+    if(!audioCtx) return;
+    if(musicEnabled){
+      startAfroHouseLoop();
     }else{
-      stopMusic();
+      stopAfroHouseLoop();
     }
   }
 
@@ -688,14 +781,14 @@
     canvas.style.height = rect.height + 'px';
 
     if(isPortraitMobile()){
-      viewH = 700;
-      viewW = 420;
+      viewW = 360;
+      viewH = 620;
     }else if(isLandscapeMobile()){
-      viewH = 660;
-      viewW = 860;
+      viewW = 920;
+      viewH = 600;
     }else{
-      viewH = 720;
       viewW = 1280;
+      viewH = 720;
     }
 
     scale = pixelW / viewW;
@@ -707,11 +800,10 @@
   function ss(v){ return v * scale; }
 
   async function enterFullscreen(){
-    const el = wrap;
     if(document.fullscreenElement) return true;
-    if(el.requestFullscreen){
+    if(wrap.requestFullscreen){
       try{
-        await el.requestFullscreen();
+        await wrap.requestFullscreen();
         return true;
       }catch(e){}
     }
@@ -737,9 +829,9 @@
     if(isMobile){
       mobileControls.style.display = 'flex';
       if(isPortraitMobile()){
-        helpText.textContent = 'Mobile vertical: jogo ampliado e botões grandes em baixo.';
+        helpText.textContent = 'Vertical: joystick esquerdo, bola JUMP à direita.';
       }else{
-        helpText.textContent = 'Mobile horizontal: controlos grandes e mapa mais aproximado.';
+        helpText.textContent = 'Horizontal: joystick discreto, JUMP à direita.';
       }
     }else{
       mobileControls.style.display = 'none';
@@ -931,7 +1023,7 @@
     betweenOverlay.style.display = 'none';
     endOverlay.style.display = 'none';
     gameState = 'playing';
-    startMusic();
+    if(musicEnabled) startAfroHouseLoop();
     resizeCanvas();
     setTimeout(tryMobileImmersive, 100);
   }
@@ -952,7 +1044,7 @@
     playSfx(currentLevel === LEVEL_COUNT ? 'win' : 'clear');
     if(currentLevel < LEVEL_COUNT){
       betweenTitle.textContent = `Nível ${currentLevel} concluído`;
-      betweenText.textContent = `Excelente. O nível ${currentLevel + 1} vai ser ainda mais intenso.`;
+      betweenText.textContent = `Boa! Nível ${currentLevel + 1} vem mais rápido, tenta bater o tempo.`;
       betweenOverlay.style.display = 'flex';
       gameState = 'between';
     }else{
@@ -966,7 +1058,7 @@
     player.vx = 0;
     player.vy = 0;
     player.invuln = 80;
-    cameraX = clamp(player.x - viewW * 0.30, 0, Math.max(0, levelWidth - viewW));
+    cameraX = clamp(player.x - viewW * 0.32, 0, Math.max(0, levelWidth - viewW));
     screenShake = 8;
   }
 
@@ -983,7 +1075,7 @@
   }
 
   function endGame(win){
-    stopMusic();
+    stopAfroHouseLoop();
     gameState = 'ended';
     endOverlay.style.display = 'flex';
     finalScore.textContent = computeScore();
@@ -995,11 +1087,11 @@
     if(win){
       endBadge.textContent = 'VENCEDOR';
       endTitle.textContent = 'Parabéns!';
-      endText.textContent = 'Concluíste os 10 níveis e ganhaste uma caneca Sagres.';
+      endText.textContent = 'Concluíste os 10 níveis de Super Cheers — score digno de Story.';
     }else{
       endBadge.textContent = 'GAME OVER';
       endTitle.textContent = 'Fim do jogo';
-      endText.textContent = 'Partilha o resultado e desafia a próxima pessoa a chegar mais longe.';
+      endText.textContent = 'Tenta outra vez e vê se consegues bater o teu próprio score.';
     }
   }
 
@@ -1162,7 +1254,7 @@
     updateParticles();
     updateCheckpoint();
 
-    const follow = isMobile ? 0.38 : 0.34;
+    const follow = isMobile ? 0.36 : 0.34;
     const targetCamera = clamp(player.x - viewW * follow, 0, Math.max(0, levelWidth - viewW));
     cameraX = lerp(cameraX, targetCamera, 0.08);
 
@@ -1599,28 +1691,61 @@
     requestAnimationFrame(loop);
   }
 
-  function bindPress(btn, onDown, onUp){
-    const d = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      initAudio();
-      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      onDown();
-      if(gameState === 'playing') tryMobileImmersive();
-    };
-    const u = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onUp();
-    };
+  /* JOYSTICK INPUT */
 
-    btn.addEventListener('pointerdown', d, { passive:false });
-    btn.addEventListener('pointerup', u, { passive:false });
-    btn.addEventListener('pointerleave', u, { passive:false });
-    btn.addEventListener('pointercancel', u, { passive:false });
-    btn.addEventListener('touchstart', d, { passive:false });
-    btn.addEventListener('touchend', u, { passive:false });
+  let joyActive = false;
+  let joyCenter = {x:0,y:0};
+
+  function handleJoyStart(e){
+    e.preventDefault();
+    const rect = joyArea.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    joyActive = true;
+    joyCenter.x = rect.left + rect.width/2;
+    joyCenter.y = rect.top + rect.height/2;
+    handleJoyMove(e);
   }
+
+  function handleJoyMove(e){
+    if(!joyActive) return;
+    const rect = joyArea.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    const dx = touch.clientX - joyCenter.x;
+    const dy = touch.clientY - joyCenter.y;
+    const max = rect.width/2 - 18;
+    const dist = Math.min(max, Math.hypot(dx,dy));
+    const ang = Math.atan2(dy,dx);
+    const nx = Math.cos(ang)*dist;
+    const ny = Math.sin(ang)*dist;
+
+    joyKnob.style.transform = `translate(${nx}px,${ny}px)`;
+
+    const horiz = nx / max;
+    if(horiz > 0.25){
+      input.right = true;
+      input.left = false;
+    }else if(horiz < -0.25){
+      input.left = true;
+      input.right = false;
+    }else{
+      input.left = input.right = false;
+    }
+  }
+
+  function handleJoyEnd(e){
+    joyActive = false;
+    joyKnob.style.transform = 'translate(0px,0px)';
+    input.left = false;
+    input.right = false;
+  }
+
+  joyArea.addEventListener('pointerdown', handleJoyStart, {passive:false});
+  joyArea.addEventListener('pointermove', handleJoyMove, {passive:false});
+  joyArea.addEventListener('pointerup', handleJoyEnd, {passive:false});
+  joyArea.addEventListener('pointercancel', handleJoyEnd, {passive:false});
+  joyArea.addEventListener('touchstart', handleJoyStart, {passive:false});
+  joyArea.addEventListener('touchmove', handleJoyMove, {passive:false});
+  joyArea.addEventListener('touchend', handleJoyEnd, {passive:false});
 
   function keySet(code, pressed){
     if(code === 'ArrowLeft') input.left = pressed;
@@ -1640,20 +1765,18 @@
     if(e.code === 'ArrowRight') input.right = false;
   });
 
-  bindPress(leftBtn, () => input.left = true, () => input.left = false);
-  bindPress(rightBtn, () => input.right = true, () => input.right = false);
-  bindPress(jumpBtn, () => input.jump = true, () => {});
-
-  async function enterFullscreen(){
-    if(document.fullscreenElement) return true;
-    if(wrap.requestFullscreen){
-      try{
-        await wrap.requestFullscreen();
-        return true;
-      }catch(e){}
-    }
-    return false;
-  }
+  jumpBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    initAudio();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    input.jump = true;
+  }, {passive:false});
+  jumpBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    initAudio();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    input.jump = true;
+  }, {passive:false});
 
   async function shareResult(){
     const c = document.createElement('canvas');
@@ -1697,7 +1820,7 @@
     g.shadowColor = '#65fff2';
     g.shadowBlur = 18;
     g.font = '900 42px Arial';
-    g.fillText('CHEERS O BAR, JOGO ORIGINAL', 540, 220);
+    g.fillText('SUPER CHEERS', 540, 220);
 
     g.fillStyle = '#ffd6d6';
     g.shadowColor = '#ff4f4f';
@@ -1751,10 +1874,10 @@
     g.shadowBlur = 0;
     g.fillStyle = '#d7dce6';
     g.font = '900 28px Arial';
-    g.fillText('Eu joguei no CHEERS O BAR em Viseu.', 540, 1760);
+    g.fillText('Eu joguei o Super Cheers no CHEERS O BAR em Viseu.', 540, 1760);
 
     const blob = await new Promise(resolve => c.toBlob(resolve, 'image/png'));
-    const text = `Eu joguei no CHEERS O BAR! @cheers_o_bar`;
+    const text = `Joguei o Super Cheers no CHEERS O BAR! @cheers_o_bar`;
 
     try{
       if(navigator.clipboard && navigator.clipboard.writeText){
@@ -1763,11 +1886,11 @@
     }catch(e){}
 
     try{
-      const file = new File([blob], 'cheers-o-bar-resultado.png', { type:'image/png' });
+      const file = new File([blob], 'super-cheers-resultado.png', { type:'image/png' });
       if(navigator.canShare && navigator.canShare({ files:[file] }) && navigator.share){
         await navigator.share({
           files:[file],
-          title:'CHEERS O BAR, JOGO ORIGINAL',
+          title:'Super Cheers',
           text
         });
         return;
@@ -1777,7 +1900,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cheers-o-bar-resultado.png';
+    a.download = 'super-cheers-resultado.png';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     alert('Imagem descarregada. Mete no Story e identifica @cheers_o_bar.');
@@ -1787,14 +1910,16 @@
   nextBtn.onclick = () => nextLevel();
   restartBtn.onclick = () => startRun();
   menuBtn.onclick = () => {
-    stopMusic();
+    stopAfroHouseLoop();
     gameState = 'menu';
     startOverlay.style.display = 'flex';
     betweenOverlay.style.display = 'none';
     endOverlay.style.display = 'none';
   };
   shareBtn.onclick = shareResult;
-  soundBtn.onclick = toggleSound;
+  soundBtn.onclick = toggleFx;
+  musicToggleBtn.onclick = toggleMusic;
+  musicBtnHud.onclick = toggleMusic;
   fsBtn.onclick = async () => {
     await enterFullscreen();
     await tryLockLandscape();
