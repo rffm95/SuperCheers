@@ -15,8 +15,8 @@
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
-      --joy-size:78px;
-      --jump-size:66px;
+      --joy-size:187px;
+      --jump-size:158px;
     }
 
     *{
@@ -184,10 +184,10 @@
       position:absolute;
       left:50%;
       top:50%;
-      width:48%;
-      height:48%;
-      margin-left:-24%;
-      margin-top:-24%;
+      width:42%;
+      height:42%;
+      margin-left:-21%;
+      margin-top:-21%;
       border-radius:50%;
       background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.16), rgba(12,14,20,.86));
       border:1px solid rgba(255,255,255,.24);
@@ -209,7 +209,7 @@
       border:1px solid rgba(255,255,255,.18);
       background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.14), rgba(11,13,18,.78));
       color:var(--gold2);
-      font-size:14px;
+      font-size:28px;
       font-weight:900;
       letter-spacing:.08em;
       display:flex;
@@ -534,7 +534,7 @@
   const finalShots = document.getElementById('finalShots');
   const finalTime = document.getElementById('finalTime');
 
-  const GRAVITY = 0.72;
+  const GRAVITY = 0.68;
   const LEVEL_COUNT = 10;
   const isMobile = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 
@@ -566,6 +566,7 @@
   let checkpointY = 260;
   let frame = 0;
   let screenShake = 0;
+  let previousTime = 0;
 
   let audioCtx = null;
   let soundEnabled = true;
@@ -676,12 +677,12 @@
     canvas.style.height = rect.height + 'px';
 
     if(isLandscapeMobile()){
-      viewW = 960;
-      viewH = 640;
+      viewW = 1120;
+      viewH = 720;
       worldShiftY = 0;
     }else if(isPortraitMobile()){
-      viewW = 960;
-      viewH = 640;
+      viewW = 1120;
+      viewH = 720;
       worldShiftY = 0;
     }else{
       viewW = 1280;
@@ -693,7 +694,10 @@
     renderOffsetX = (pixelW - viewW * scale) * 0.5;
     renderOffsetY = (pixelH - viewH * scale) * 0.5;
 
-    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingEnabled = false;
+    if(gameState === 'playing' || gameState === 'menu' || gameState === 'between'){
+      updateCamera(true);
+    }
   }
 
   function sx(x){ return renderOffsetX + (x - cameraX) * scale; }
@@ -903,11 +907,11 @@
   }
 
   function updateCamera(snap=false){
-    const targetX = clamp(player.x + player.w * 0.5 - viewW * 0.25, 0, Math.max(0, levelWidth - viewW));
+    const targetX = clamp(player.x + player.w * 0.5 - viewW * 0.5, 0, Math.max(0, levelWidth - viewW));
     const maxCameraY = Math.max(levelTop, levelBottom - viewH);
-    const targetY = clamp(player.y + player.h * 0.5 - viewH * 0.74, levelTop, maxCameraY);
-    const followX = snap ? 1 : (isMobile ? 0.16 : 0.10);
-    const followY = snap ? 1 : (isMobile ? 0.18 : 0.12);
+    const targetY = clamp(player.y + player.h * 0.5 - viewH * 0.5, levelTop, maxCameraY);
+    const followX = snap ? 1 : (isMobile ? 0.20 : 0.10);
+    const followY = snap ? 1 : (isMobile ? 0.22 : 0.12);
     cameraX = lerp(cameraX, targetX, followX);
     cameraY = lerp(cameraY, targetY, followY);
   }
@@ -922,24 +926,26 @@
     totalShots = 0;
     lives = 3;
     buildLevel(currentLevel);
+    resizeCanvas();
+    updateCamera(true);
     updateHud();
     startOverlay.style.display = 'none';
     betweenOverlay.style.display = 'none';
     endOverlay.style.display = 'none';
     gameState = 'playing';
     if(musicEnabled) startMusic();
-    resizeCanvas();
     setTimeout(tryMobileImmersive, 100);
   }
 
   function nextLevel(){
     currentLevel++;
     buildLevel(currentLevel);
+    resizeCanvas();
+    updateCamera(true);
     updateHud();
     betweenOverlay.style.display = 'none';
     endOverlay.style.display = 'none';
     gameState = 'playing';
-    resizeCanvas();
     setTimeout(tryMobileImmersive, 100);
   }
 
@@ -1031,7 +1037,7 @@
     else moveAxis = input.moveAxis;
 
     if(Math.abs(moveAxis) > 0.001){
-      const accelMul = 0.22 + Math.abs(moveAxis) * 0.58;
+      const accelMul = 0.18 + Math.abs(moveAxis) * 0.56;
       if(moveAxis < 0){
         player.vx -= (player.onGround ? accel : accel * air) * accelMul;
         player.face = -1;
@@ -1044,13 +1050,13 @@
       if(Math.abs(player.vx) < 0.04) player.vx = 0;
     }
 
-    const speedLimit = maxSpeed * (Math.abs(moveAxis) > 0.001 ? (0.18 + Math.abs(moveAxis) * 0.68) : 1);
+    const speedLimit = maxSpeed * (Math.abs(moveAxis) > 0.001 ? (0.20 + Math.abs(moveAxis) * 0.65) : 1);
     player.vx = clamp(player.vx, -speedLimit, speedLimit);
 
-    if(input.jump) player.jumpBuffer = 8;
+    if(input.jump) player.jumpBuffer = 12;
 
     if(player.jumpBuffer > 0 && (player.onGround || player.coyote > 0)){
-      player.vy = -14.2;
+      player.vy = -15.4;
       player.onGround = false;
       player.coyote = 0;
       player.jumpBuffer = 0;
@@ -1077,14 +1083,14 @@
         player.y = p.y - player.h;
         player.vy = 0;
         player.onGround = true;
-        player.coyote = 8;
+        player.coyote = 12;
       }else if(player.vy < 0){
         player.y = p.y + p.h;
         player.vy = 0;
       }
     }
 
-    if(player.onGround) player.coyote = 8;
+    if(player.onGround) player.coyote = 12;
 
     if(player.y > viewH + 240) loseLife();
     if(player.x + player.w >= levelWidth - 120) finishLevel();
@@ -1617,8 +1623,11 @@
     drawVignette();
   }
 
-  function loop(){
-    update();
+  function loop(now = 0){
+    const delta = previousTime ? now - previousTime : 16.67;
+    previousTime = now;
+    const steps = Math.min(2, Math.max(1, Math.round(delta / 16.67)));
+    for(let i=0;i<steps;i++) update();
     render();
     requestAnimationFrame(loop);
   }
@@ -1662,7 +1671,7 @@
     const touch = e.touches ? e.touches[0] : e;
     const dx = touch.clientX - joyCenter.x;
     const dy = touch.clientY - joyCenter.y;
-    const max = rect.width * 0.34;
+    const max = rect.width * 0.42;
     const dist = Math.min(max, Math.hypot(dx,dy));
     const ang = Math.atan2(dy,dx);
     const nx = Math.cos(ang) * dist;
@@ -1671,12 +1680,12 @@
     joyKnob.style.transform = `translate(${nx}px,${ny}px)`;
 
     const rawHoriz = clamp(nx / max, -1, 1);
-    const deadzone = 0.45;
+    const deadzone = 0.46;
     let moveAxis = 0;
 
     if(Math.abs(rawHoriz) > deadzone){
       const amt = (Math.abs(rawHoriz) - deadzone) / (1 - deadzone);
-      moveAxis = Math.sign(rawHoriz) * Math.pow(amt, 1.9);
+      moveAxis = Math.sign(rawHoriz) * Math.pow(amt, 1.8) * 0.72;
     }
 
     input.moveAxis = moveAxis;
