@@ -556,6 +556,7 @@
   let currentLevel = 1;
   let levelWidth = 4200;
   let cameraX = 0;
+  let cameraY = 0;
   let elapsed = 0;
   let totalScore = 0;
   let totalMugs = 0;
@@ -577,7 +578,11 @@
   let viewW = 1280;
   let viewH = 720;
   let scale = 1;
+  let renderOffsetX = 0;
+  let renderOffsetY = 0;
   let worldShiftY = 0;
+  let levelTop = 0;
+  let levelBottom = 760;
 
   const player = {
     x:80, y:260, w:44, h:60,
@@ -709,24 +714,32 @@
     if(isLandscapeMobile()){
       viewW = 960;
       viewH = 640;
-      worldShiftY = 96;
+      worldShiftY = 0;
     }else if(isPortraitMobile()){
       viewW = 960;
       viewH = 640;
-      worldShiftY = 96;
+      worldShiftY = 0;
     }else{
       viewW = 1280;
       viewH = 720;
       worldShiftY = 0;
     }
 
-    scale = pixelW / viewW;
+    scale = Math.min(pixelW / viewW, pixelH / viewH);
+    renderOffsetX = (pixelW - viewW * scale) * 0.5;
+    renderOffsetY = (pixelH - viewH * scale) * 0.5;
+
     ctx.imageSmoothingEnabled = true;
   }
 
-  function sx(x){ return (x - cameraX) * scale; }
-  function sy(y){ return (y + worldShiftY) * scale; }
+  function sx(x){ return renderOffsetX + (x - cameraX) * scale; }
+  function sy(y){ return renderOffsetY + (y - cameraY + worldShiftY) * scale; }
   function ss(v){ return v * scale; }
+
+  function clearFrame(){
+    ctx.fillStyle = '#0e1015';
+    ctx.fillRect(0, 0, pixelW, pixelH);
+  }
 
   async function enterFullscreen(){
     if(document.fullscreenElement) return true;
@@ -907,6 +920,9 @@
     checkpointX = 80;
     checkpointY = 260;
     cameraX = 0;
+    cameraY = 0;
+    levelTop = 0;
+    levelBottom = Math.max(760, ...world.platforms.map(p => p.y + p.h), ...world.boards.map(b => b.y + b.h + 80));
     screenShake = 0;
   }
 
@@ -920,6 +936,16 @@
 
   function computeScore(){
     return totalScore + totalMugs * 130 + totalShots * 190 + Math.floor(elapsed * 10) + currentLevel * 180;
+  }
+
+  function updateCamera(snap=false){
+    const targetX = clamp(player.x + player.w * 0.5 - viewW * 0.25, 0, Math.max(0, levelWidth - viewW));
+    const maxCameraY = Math.max(levelTop, levelBottom - viewH);
+    const targetY = clamp(player.y + player.h * 0.5 - viewH * 0.74, levelTop, maxCameraY);
+    const followX = snap ? 1 : (isMobile ? 0.16 : 0.10);
+    const followY = snap ? 1 : (isMobile ? 0.18 : 0.12);
+    cameraX = lerp(cameraX, targetX, followX);
+    cameraY = lerp(cameraY, targetY, followY);
   }
 
   function startRun(){
@@ -972,7 +998,7 @@
     player.vx = 0;
     player.vy = 0;
     player.invuln = 80;
-    cameraX = clamp(player.x - viewW * 0.30, 0, Math.max(0, levelWidth - viewW));
+    updateCamera(true);
     screenShake = 8;
   }
 
@@ -1169,39 +1195,56 @@
     updateEnemies();
     updateParticles();
     updateCheckpoint();
-
-    const follow = isMobile ? 0.30 : 0.34;
-    const targetCamera = clamp(player.x - viewW * follow, 0, Math.max(0, levelWidth - viewW));
-    cameraX = lerp(cameraX, targetCamera, 0.08);
+    updateCamera();
 
     updateHud();
     input.jump = false;
   }
 
   function drawBackground(){
-    const g = ctx.createLinearGradient(0,0,0,pixelH);
+    const bgTop = renderOffsetY;
+    const bgBottom = renderOffsetY + viewH * scale;
+    const g = ctx.createLinearGradient(0, bgTop, 0, bgBottom);
     g.addColorStop(0, '#4f596b');
     g.addColorStop(.44, '#252b37');
     g.addColorStop(1, '#0e1015');
-    ctx.fillStyle = g;
+
+    ctx.fillStyle = '#0e1015';
     ctx.fillRect(0,0,pixelW,pixelH);
 
-    const glow1 = ctx.createRadialGradient(pixelW*.72, pixelH*.16, 10, pixelW*.72, pixelH*.16, pixelH*.36);
+    ctx.fillStyle = g;
+    ctx.fillRect(renderOffsetX, renderOffsetY, viewW * scale, viewH * scale);
+
+    const glow1 = ctx.createRadialGradient(
+      renderOffsetX + viewW * scale * .72,
+      renderOffsetY + viewH * scale * .16,
+      10,
+      renderOffsetX + viewW * scale * .72,
+      renderOffsetY + viewH * scale * .16,
+      viewH * scale * .36
+    );
     glow1.addColorStop(0, 'rgba(255,79,216,.28)');
     glow1.addColorStop(1, 'rgba(255,79,216,0)');
     ctx.fillStyle = glow1;
-    ctx.fillRect(0,0,pixelW,pixelH);
+    ctx.fillRect(renderOffsetX, renderOffsetY, viewW * scale, viewH * scale);
 
-    const glow2 = ctx.createRadialGradient(pixelW*.22, pixelH*.22, 10, pixelW*.22, pixelH*.22, pixelH*.34);
+    const glow2 = ctx.createRadialGradient(
+      renderOffsetX + viewW * scale * .22,
+      renderOffsetY + viewH * scale * .22,
+      10,
+      renderOffsetX + viewW * scale * .22,
+      renderOffsetY + viewH * scale * .22,
+      viewH * scale * .34
+    );
     glow2.addColorStop(0, 'rgba(101,255,242,.20)');
     glow2.addColorStop(1, 'rgba(101,255,242,0)');
     ctx.fillStyle = glow2;
-    ctx.fillRect(0,0,pixelW,pixelH);
+    ctx.fillRect(renderOffsetX, renderOffsetY, viewW * scale, viewH * scale);
 
     for(let i=0;i<world.decor.length;i++){
       const d = world.decor[i];
       const par = 0.14 + d.layer * 0.09;
-      const x = (d.x - cameraX * par) * scale;
+      const x = renderOffsetX + (d.x - cameraX * par) * scale;
       const y = sy(610 + 110 - d.h);
       const w = ss(d.w);
       const h = ss(d.h);
@@ -1226,9 +1269,9 @@
       const px = (x + viewW + 280) % (viewW + 280) - 140;
       ctx.fillStyle = i % 2 ? 'rgba(255,79,216,.08)' : 'rgba(101,255,242,.07)';
       ctx.beginPath();
-      ctx.moveTo(sx(px), sy(610));
-      ctx.lineTo(sx(px + 100), sy(280 + (i % 3) * 28));
-      ctx.lineTo(sx(px + 200), sy(610));
+      ctx.moveTo(renderOffsetX + px * scale, sy(610));
+      ctx.lineTo(renderOffsetX + (px + 100) * scale, sy(280 + (i % 3) * 28));
+      ctx.lineTo(renderOffsetX + (px + 200) * scale, sy(610));
       ctx.closePath();
       ctx.fill();
     }
@@ -1580,7 +1623,7 @@
 
   function render(){
     ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0,0,pixelW,pixelH);
+    clearFrame();
 
     const shakeX = (Math.random() - 0.5) * screenShake;
     const shakeY = (Math.random() - 0.5) * screenShake;
@@ -1819,6 +1862,7 @@
 
   resizeCanvas();
   buildLevel(1);
+  updateCamera(true);
   updateHud();
   loop();
 })();
