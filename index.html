@@ -569,7 +569,7 @@
 
   let audioCtx = null;
   let soundEnabled = true;
-  let musicEnabled = true;
+  let musicEnabled = false;
   let musicTimer = null;
   let musicStep = 0;
 
@@ -628,37 +628,7 @@
   }
 
   function startMusic(){
-    if(musicTimer || !musicEnabled || !audioCtx) return;
-    const seq = [262, 392, 330, 494, 392, 523, 392, 330];
-    musicTimer = setInterval(() => {
-      if(gameState !== 'playing') return;
-      const v = 0.014;
-      const t = audioCtx.currentTime;
-
-      const o1 = audioCtx.createOscillator();
-      const g1 = audioCtx.createGain();
-      o1.type = 'square';
-      o1.frequency.setValueAtTime(seq[musicStep % seq.length], t);
-      g1.gain.setValueAtTime(v, t);
-      g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-      o1.connect(g1).connect(audioCtx.destination);
-      o1.start(t);
-      o1.stop(t + 0.12);
-
-      if(musicStep % 2 === 0){
-        const o2 = audioCtx.createOscillator();
-        const g2 = audioCtx.createGain();
-        o2.type = 'triangle';
-        o2.frequency.setValueAtTime(seq[(musicStep + 2) % seq.length] / 2, t);
-        g2.gain.setValueAtTime(0.010, t);
-        g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-        o2.connect(g2).connect(audioCtx.destination);
-        o2.start(t);
-        o2.stop(t + 0.16);
-      }
-
-      musicStep++;
-    }, 180);
+    return;
   }
 
   function stopMusic(){
@@ -680,15 +650,9 @@
   }
 
   function toggleMusic(){
-    musicEnabled = !musicEnabled;
-    musicBtn.textContent = musicEnabled ? '♪' : '×';
-    if(musicEnabled){
-      initAudio();
-      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      startMusic();
-    }else{
-      stopMusic();
-    }
+    musicEnabled = false;
+    stopMusic();
+    musicBtn.textContent = '×';
   }
 
   function isPortraitMobile(){
@@ -1067,7 +1031,7 @@
     else moveAxis = input.moveAxis;
 
     if(Math.abs(moveAxis) > 0.001){
-      const accelMul = 0.35 + Math.abs(moveAxis) * 0.65;
+      const accelMul = 0.22 + Math.abs(moveAxis) * 0.58;
       if(moveAxis < 0){
         player.vx -= (player.onGround ? accel : accel * air) * accelMul;
         player.face = -1;
@@ -1080,7 +1044,7 @@
       if(Math.abs(player.vx) < 0.04) player.vx = 0;
     }
 
-    const speedLimit = maxSpeed * (Math.abs(moveAxis) > 0.001 ? (0.28 + Math.abs(moveAxis) * 0.72) : 1);
+    const speedLimit = maxSpeed * (Math.abs(moveAxis) > 0.001 ? (0.18 + Math.abs(moveAxis) * 0.68) : 1);
     player.vx = clamp(player.vx, -speedLimit, speedLimit);
 
     if(input.jump) player.jumpBuffer = 8;
@@ -1698,7 +1662,7 @@
     const touch = e.touches ? e.touches[0] : e;
     const dx = touch.clientX - joyCenter.x;
     const dy = touch.clientY - joyCenter.y;
-    const max = rect.width * 0.30;
+    const max = rect.width * 0.34;
     const dist = Math.min(max, Math.hypot(dx,dy));
     const ang = Math.atan2(dy,dx);
     const nx = Math.cos(ang) * dist;
@@ -1707,12 +1671,12 @@
     joyKnob.style.transform = `translate(${nx}px,${ny}px)`;
 
     const rawHoriz = clamp(nx / max, -1, 1);
-    const deadzone = 0.38;
+    const deadzone = 0.45;
     let moveAxis = 0;
 
     if(Math.abs(rawHoriz) > deadzone){
       const amt = (Math.abs(rawHoriz) - deadzone) / (1 - deadzone);
-      moveAxis = Math.sign(rawHoriz) * Math.pow(amt, 1.6);
+      moveAxis = Math.sign(rawHoriz) * Math.pow(amt, 1.9);
     }
 
     input.moveAxis = moveAxis;
@@ -1872,6 +1836,7 @@
   }, { passive:true });
 
   resizeCanvas();
+  musicBtn.textContent = '×';
   buildLevel(1);
   updateCamera(true);
   updateHud();
